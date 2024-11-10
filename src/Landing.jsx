@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useStore } from "./components/store";
 import gsap from "gsap";
+import { ConnectButton, useConnection } from "arweave-wallet-kit";
 
 export const Landing = () => {
   const { gameStarted, actions } = useStore();
@@ -10,6 +11,7 @@ export const Landing = () => {
   const homeRef = useRef();
   const [setupStatus, setSetupStatus] = useState(0);
   const [controlStyle, setControlStyle] = useState("");
+  const { connected } = useConnection();
 
   useEffect(() => {
     const tl = gsap.timeline();
@@ -38,67 +40,100 @@ export const Landing = () => {
     }
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Enter') {
+      if (event.key === "Enter") {
         setSetupStatus(1);
       }
     };
 
-    document.body.addEventListener('keydown', handleKeyDown);
+    document.body.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.removeEventListener('keydown', handleKeyDown);
+      document.body.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [setupStatus]);
+
+  // Handle ESC key when the user is on the "Choose Device" page
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape" && setupStatus === 1) {
+        setSetupStatus(0);
+      }
+    };
+    document.body.addEventListener("keydown", handleEscape);
+    return () => {
+      document.body.removeEventListener("keydown", handleEscape);
     };
   }, [setupStatus]);
 
   if (gameStarted) {
-    return null; 
+    return null;
   }
+
   return (
     <>
-      {setupStatus === 0 && (
+      {(setupStatus === 0 || !connected) && (
         <div className="home" ref={homeRef}>
           <div className="logo">
             <img ref={logo} src="./logo.png" alt="logo" />
           </div>
           <div className="start" ref={startButton}>
-            <button className="start-button"
-                    onClick={() => setSetupStatus(1)} 
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        setSetupStatus(1);
-                    }}} autoFocus>
-              ENTER TO AO_KARTS
+            <button
+              className="start-button"
+              onClick={() => setSetupStatus(1)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  setSetupStatus(1);
+                }
+              }}
+              autoFocus
+            >
+              {/* ENTER TO AO_KARTS */}
+              <ConnectButton
+                profileModal={true}
+                showBalance={false}
+                showAddress={false}
+                showProfilePicture={true}
+              />
             </button>
           </div>
         </div>
       )}
-      {setupStatus === 1 && (
+      {setupStatus === 1 && connected && (
         <div className="home">
           <div className="glassy">
             <h1>CHOOSE YOUR DEVICE</h1>
 
             <div className="articles">
-       
-              <div className={controlStyle === "keyboard" ? "article selected" : "article"} onClick={() => 
-              setControlStyle("keyboard")}>
+              <div
+                className={
+                  controlStyle === "keyboard" ? "article selected" : "article"
+                }
+                onClick={() => setControlStyle("keyboard")}
+              >
                 <img src="./images/keyboard.png" alt="keyboard" />
                 <div className="article_label">
                   <p>Keyboard</p>
-                </div> 
+                </div>
               </div>
-              <div className={controlStyle === "touch" ? "article selected" : "article"} onClick={() => 
-              setControlStyle("touch")}>
+              <div
+                className={
+                  controlStyle === "touch" ? "article selected" : "article"
+                }
+                onClick={() => setControlStyle("touch")}
+              >
                 <img src="./images/mobile.png" alt="mobile" />
                 <div className="article_label">
                   <p>Mobile</p>
                 </div>
               </div>
-      
-              
             </div>
 
-            <div className={controlStyle != "" ? "submit" : "submit disabled"}>
+            <div className={controlStyle !== "" ? "submit" : "submit disabled"}>
               <button
-                className={controlStyle != "" ? "submit-button" : "submit-button disabled"}
+                className={
+                  controlStyle !== ""
+                    ? "submit-button"
+                    : "submit-button disabled"
+                }
                 onClick={() => {
                   actions.setControls(controlStyle);
                   actions.setGameStarted(true);
@@ -111,6 +146,5 @@ export const Landing = () => {
         </div>
       )}
     </>
-
   );
 };

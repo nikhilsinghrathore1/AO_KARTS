@@ -13,6 +13,7 @@
     "@react-three/fiber": "^8.15.15",
     "@react-three/postprocessing": "^2.15.11",
     "@react-three/rapier": "^1.2.1",
+    "arweave-wallet-kit": "^1.0.7",
     "gsap": "^3.12.5",
     "leva": "^0.9.35",
     "playroomkit": "^0.0.66",
